@@ -50,7 +50,6 @@ function Login() {
               type='email'
               placeholder='Enter your email'
               className='form-control'
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
