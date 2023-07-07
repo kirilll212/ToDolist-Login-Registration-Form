@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SHA256 } from 'crypto-js';
+import {validateName,
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword
+} from "./Validation/config"
 
 function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -23,6 +27,31 @@ function Signup() {
     }
   }, []);
 
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    setNameError(validateName(value).error);
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setEmailError(validateEmail(value).error);
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setPasswordError(validatePassword(value).error);
+    setConfirmPasswordError(validateConfirmPassword(value, confirmPassword).error);
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+    setConfirmPasswordError(validateConfirmPassword(password, value).error);
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
@@ -30,6 +59,16 @@ function Signup() {
     setEmailError('');
     setPasswordError('');
     setConfirmPasswordError('');
+
+    const nameValidation = validateName(name);
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+    const confirmPasswordValidation = validateConfirmPassword(password, confirmPassword);
+
+    setNameError(nameValidation.error);
+    setEmailError(emailValidation.error);
+    setPasswordError(passwordValidation.error);
+    setConfirmPasswordError(confirmPasswordValidation.error);
   
     const storedUsers = localStorage.getItem('users');
     const users = storedUsers ? JSON.parse(storedUsers) : [];
@@ -39,54 +78,32 @@ function Signup() {
       setEmailError('User with this email already exists');
       return;
     }
+
+    if (
+      nameValidation.isValid &&
+      emailValidation.isValid &&
+      passwordValidation.isValid &&
+      confirmPasswordValidation.isValid
+    ) {
+      const hashedPassword = SHA256(password).toString();
+      const newUser = { name, email, password: hashedPassword };
+      const updatedUsers = [...users, newUser];
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+    
+      const storedUsernames = localStorage.getItem('usernames');
+      const usernames = storedUsernames ? JSON.parse(storedUsernames) : [];
+      const updatedUsernames = [...usernames, name];
+      localStorage.setItem('usernames', JSON.stringify(updatedUsernames));
   
-    // Validation for Name
-    if (!name ||name.length < 3 || /[^a-zA-Z0-9 ]/.test(name)) {
-      setNameError('Invalid name. Name should be at least 3 characters long and contain only letters and numbers.');
-      return;
-    }    
-
-    // Validation for Email
-    const emailRegex = /^[A-Za-z0-9]+@[A-Za-z0-9]+\.[A-Za-z]+$/;
-    if (!emailRegex.test(email)) {
-      setEmailError('Invalid email address. Please enter a valid email.');
-      return;
-    }
-
-    // Validation for Password
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setPasswordError(
-        'Invalid password. Password should be at least 8 characters long and contain at least one uppercase letter and one digit.'
-      );
-      return;
-    }
-
-    // Validation for Confirm Password
-    if (password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match. Please enter the same password again.');
-      return;
-    }
+      setSuccessMessage('Registration successful!');
   
-    const hashedPassword = SHA256(password).toString();
-    const newUser = { name, email, password: hashedPassword };
-    const updatedUsers = [...users, newUser];
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-  
-    const storedUsernames = localStorage.getItem('usernames');
-    const usernames = storedUsernames ? JSON.parse(storedUsernames) : [];
-    const updatedUsernames = [...usernames, name];
-    localStorage.setItem('usernames', JSON.stringify(updatedUsernames));
-
-    setSuccessMessage('Registration successful!');
-
-    setName('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+    }
   };
   
-
   return (
     <div className="signup template d-flex justify-content-center align-items-center vh-100 bg-info">
       <div className="form_container p-5 rounded bg-white">
@@ -99,7 +116,7 @@ function Signup() {
               placeholder="Enter your name"
               className="form-control"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
               />
               {nameError && <p className="text-danger">{nameError}</p>}
           </div>
@@ -110,7 +127,7 @@ function Signup() {
               placeholder="Enter your email"
               className="form-control"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               />
               {emailError && <p className="text-danger">{emailError}</p>}
           </div>
@@ -121,7 +138,7 @@ function Signup() {
               placeholder="Enter your password"
               className="form-control"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
               />
               {passwordError && <p className="text-danger">{passwordError}</p>}
           </div>
@@ -132,7 +149,7 @@ function Signup() {
               placeholder="Enter your password again"
               className="form-control"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={handleConfirmPasswordChange}
               />
           </div>
               {confirmPasswordError && <p className="text-danger">{confirmPasswordError}</p>}
