@@ -106,9 +106,6 @@ function Signup() {
       <div className="form_container p-5 rounded bg-white">
         <form onSubmit={handleFormSubmit}>
           <h3 className="text-center">Sign Up</h3>
-
-          <div className='mb-2'>
-            <label htmlFor="name">Name</label>
             <FormInput
                 input="text"
                 validate={validateName}
@@ -116,21 +113,15 @@ function Signup() {
                 placeholder="Enter your name"
               />
               {nameError && <p className="text-danger">{nameError}</p>}
-          </div>
 
-          <div className="mb-2">
-            <label htmlFor="email">Email</label>
             <FormInput
               input="email"
               validate={validateEmail}
               name="Email"
               onChange={handleEmailChange}
             />
-            {emailError && <p className="text-danger">{emailError}</p>}
-          </div>
+              {emailError && <p className="text-danger">{emailError}</p>}
 
-          <div className="mb-2">
-            <label htmlFor="password">Password</label>
             <FormInput
               input="password"
               validate={validatePassword}
@@ -138,17 +129,15 @@ function Signup() {
               onChange={handlePasswordChange}
             />
               {passwordError && <p className="text-danger">{passwordError}</p>}
-          </div>
-          <div className="mb-2">
-            <label htmlFor="password">Confirm Password</label>
+
             <FormInput
               input="confirmPassword"
               validate={validateConfirmPassword}
               name="Confirm Pass"
               onChange={handleConfirmPasswordChange}
             />
-          </div>
               {confirmPasswordError && <p className="text-danger">{confirmPasswordError}</p>}
+
           <div className="d-grid mt-2">
             <button className="btn btn-primary" type="submit">
               Register
