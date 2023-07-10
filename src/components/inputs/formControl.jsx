@@ -31,4 +31,4 @@ export const FormInput = ({ input, validate, name, value, onChange, error}) => {
             </div>
         </div>
     )
-  };
+};
