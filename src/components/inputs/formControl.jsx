@@ -1,6 +1,6 @@
 
 
-export const FormInput = ({ input, validate, name, value, onChange, error}) => {
+export const FormInput = ({ input, value, onChange}) => {
     const handleChange = (e) => {
       const value = e.target.value;
       onChange(value);
