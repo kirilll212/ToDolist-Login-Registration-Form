@@ -6,6 +6,7 @@ import {validateName,
   validatePassword,
   validateConfirmPassword
 } from "./Validation/config"
+import { FormInput } from './inputs/formControl';
 
 function Signup() {
   const [name, setName] = useState('');
@@ -27,27 +28,23 @@ function Signup() {
     }
   }, []);
 
-  const handleNameChange = (e) => {
-    const value = e.target.value;
+  const handleNameChange = (value) => {
     setName(value);
     setNameError(validateName(value).error);
   };
 
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
+  const handleEmailChange = (value) => {
     setEmail(value);
     setEmailError(validateEmail(value).error);
   };
 
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
+  const handlePasswordChange = (value) => {
     setPassword(value);
     setPasswordError(validatePassword(value).error);
     setConfirmPasswordError(validateConfirmPassword(value, confirmPassword).error);
   };
 
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
+  const handleConfirmPasswordChange = (value) => {
     setConfirmPassword(value);
     setConfirmPasswordError(validateConfirmPassword(password, value).error);
   };
@@ -109,48 +106,47 @@ function Signup() {
       <div className="form_container p-5 rounded bg-white">
         <form onSubmit={handleFormSubmit}>
           <h3 className="text-center">Sign Up</h3>
-          <div className="mb-2">
-            <label htmlFor="firstName">Name</label>
-            <input
-              type="text"
-              placeholder="Enter your name"
-              className="form-control"
-              value={name}
-              onChange={handleNameChange}
+
+          <div className='mb-2'>
+            <label htmlFor="name">Name</label>
+            <FormInput
+                input="text"
+                validate={validateName}
+                onChange={handleNameChange}
+                placeholder="Enter your name"
               />
               {nameError && <p className="text-danger">{nameError}</p>}
           </div>
+
           <div className="mb-2">
             <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="form-control"
-              value={email}
+            <FormInput
+              input="email"
+              validate={validateEmail}
+              name="Email"
               onChange={handleEmailChange}
-              />
-              {emailError && <p className="text-danger">{emailError}</p>}
+            />
+            {emailError && <p className="text-danger">{emailError}</p>}
           </div>
+
           <div className="mb-2">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="form-control"
-              value={password}
+            <FormInput
+              input="password"
+              validate={validatePassword}
+              name="Password"
               onChange={handlePasswordChange}
-              />
+            />
               {passwordError && <p className="text-danger">{passwordError}</p>}
           </div>
           <div className="mb-2">
             <label htmlFor="password">Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password again"
-              className="form-control"
-              value={confirmPassword}
+            <FormInput
+              input="confirmPassword"
+              validate={validateConfirmPassword}
+              name="Confirm Pass"
               onChange={handleConfirmPasswordChange}
-              />
+            />
           </div>
               {confirmPasswordError && <p className="text-danger">{confirmPasswordError}</p>}
           <div className="d-grid mt-2">
