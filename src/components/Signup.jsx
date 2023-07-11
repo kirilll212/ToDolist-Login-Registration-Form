@@ -111,32 +111,32 @@ function Signup() {
                 validate={validateName}
                 onChange={handleNameChange}
                 placeholder="Enter your name"
+                error={nameError}
               />
-              {nameError && <p className="text-danger">{nameError}</p>}
 
             <FormInput
               input="email"
               validate={validateEmail}
               name="Email"
               onChange={handleEmailChange}
+              error={emailError}
             />
-              {emailError && <p className="text-danger">{emailError}</p>}
 
             <FormInput
               input="password"
               validate={validatePassword}
               name="Password"
               onChange={handlePasswordChange}
+              error={passwordError}
             />
-              {passwordError && <p className="text-danger">{passwordError}</p>}
 
             <FormInput
               input="confirmPassword"
               validate={validateConfirmPassword}
               name="Confirm Pass"
               onChange={handleConfirmPasswordChange}
+              error={confirmPasswordError}
             />
-              {confirmPasswordError && <p className="text-danger">{confirmPasswordError}</p>}
 
           <div className="d-grid mt-2">
             <button className="btn btn-primary" type="submit">

@@ -100,8 +100,15 @@ const NewTodoList = () => {
 
   const filteredTodos = Object.entries(todos).filter(([todoId, todo]) => {
     const { createdBy } = todo;
-    return createdBy === loggedInUser;
-  });  
+    if (activeTab === 'all') {
+      return createdBy === loggedInUser;
+    } else if (activeTab === 'active') {
+      return createdBy === loggedInUser && !completedTodos[todoId];
+    } else if (activeTab === 'completed') {
+      return createdBy === loggedInUser && completedTodos[todoId];
+    }
+    return false;
+  });
 
   const handleLogout = () => {
     localStorage.removeItem('loggedInUser');

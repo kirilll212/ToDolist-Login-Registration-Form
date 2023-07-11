@@ -1,6 +1,6 @@
 
 
-export const FormInput = ({ input, value, onChange}) => {
+export const FormInput = ({ input, value, onChange, error}) => {
     const handleChange = (e) => {
       const value = e.target.value;
       onChange(value);
@@ -37,6 +37,7 @@ export const FormInput = ({ input, value, onChange}) => {
             <div className="mb-2">
                 {labelText}
                 {inputElement}
+                {error && <p className="text-danger">{error}</p>}
             </div>
         </div>
     )
