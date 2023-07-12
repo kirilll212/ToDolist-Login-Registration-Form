@@ -17,9 +17,7 @@ const NewTodoList = () => {
 
     setTodos(JSON.parse(storedTodos) || {});
     setCompletedTodos(JSON.parse(storedCompletedTodos) || {});
-  }, []);
 
-  useEffect(() => {
     const storedUser = localStorage.getItem('loggedInUser');
     if (storedUser) {
       setLoggedInUser(JSON.parse(storedUser));

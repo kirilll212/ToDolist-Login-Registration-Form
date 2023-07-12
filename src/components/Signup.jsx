@@ -41,7 +41,6 @@ function Signup() {
   const handlePasswordChange = (value) => {
     setPassword(value);
     setPasswordError(validatePassword(value).error);
-    setConfirmPasswordError(validateConfirmPassword(value, confirmPassword).error);
   };
 
   const handleConfirmPasswordChange = (value) => {
@@ -108,7 +107,6 @@ function Signup() {
           <h3 className="text-center">Sign Up</h3>
             <FormInput
                 input="text"
-                validate={validateName}
                 onChange={handleNameChange}
                 placeholder="Enter your name"
                 error={nameError}
@@ -116,7 +114,6 @@ function Signup() {
 
             <FormInput
               input="email"
-              validate={validateEmail}
               name="Email"
               onChange={handleEmailChange}
               error={emailError}
@@ -124,7 +121,6 @@ function Signup() {
 
             <FormInput
               input="password"
-              validate={validatePassword}
               name="Password"
               onChange={handlePasswordChange}
               error={passwordError}
@@ -132,7 +128,6 @@ function Signup() {
 
             <FormInput
               input="confirmPassword"
-              validate={validateConfirmPassword}
               name="Confirm Pass"
               onChange={handleConfirmPasswordChange}
               error={confirmPasswordError}
