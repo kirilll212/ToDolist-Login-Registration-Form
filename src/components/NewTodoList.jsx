@@ -118,9 +118,9 @@ const NewTodoList = () => {
   };
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-between align-items-center">
-        <h2 className="my-4">Todo List</h2>
+    <div className="container mt-5 shadow-lg p-4 rounded">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="text-primary">Todo List</h2>
         <button className="btn btn-danger" onClick={handleLogout}>
           Logout
         </button>
@@ -137,7 +137,7 @@ const NewTodoList = () => {
           {editIndex !== null ? 'Save' : 'Add'}
         </button>
       </div>
-      <ul className="nav nav-tabs mb-3">
+      <ul className="nav nav-tabs">
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === 'all' ? 'active' : ''}`}
@@ -156,25 +156,23 @@ const NewTodoList = () => {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${
-              activeTab === 'completed' ? 'active' : ''
-            }`}
+            className={`nav-link ${activeTab === 'completed' ? 'active' : ''
+              }`}
             onClick={() => handleTabChange('completed')}
           >
             Completed
           </button>
         </li>
       </ul>
-      <ul className="list-group">
+      <ul className="list-group mt-3">
         {filteredTodos.map(([todoId, todo]) => {
-          const { text, createdBy } = todo; // Отримуємо ім'я користувача, який створив тудушку
+          const { text, createdBy } = todo;
 
           return (
             <li
               key={todoId}
-              className={`list-group-item d-flex justify-content-between align-items-center ${
-                isTodoCompleted(todoId) ? 'completed' : ''
-              }`}
+              className={`list-group-item d-flex justify-content-between align-items-center ${isTodoCompleted(todoId) ? 'list-group-item-success' : ''
+                }`}
             >
               <label className="form-check-label" htmlFor={`checkbox-${todoId}`}>
                 <input
@@ -184,7 +182,7 @@ const NewTodoList = () => {
                   checked={isTodoCompleted(todoId)}
                   onChange={() => handleToggleTodo(todoId)}
                 />
-                <span>{text}</span>
+                <span className="ms-2">{text}</span>
               </label>
               <div>
                 <div className="todo-creator text-muted">
