@@ -1,121 +1,124 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import './style.css';
 
 const NewTodoList = () => {
-  const [todos, setTodos] = useState({});
-  const [completedTodos, setCompletedTodos] = useState({});
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [inputValue, setInputValue] = useState('');
   const [editIndex, setEditIndex] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [loggedInUser, setLoggedInUser] = useState('');
-  const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchTodos = async () => {
     const storedTodos = localStorage.getItem('todos');
+    return JSON.parse(storedTodos) || {};
+  };
+  
+  const fetchCompletedTodos = async () => {
     const storedCompletedTodos = localStorage.getItem('completedTodos');
+    return JSON.parse(storedCompletedTodos) || {};
+  };
+  
+  const fetchLoggedInUser = async () => {
+    const storedLoggedInUser = localStorage.getItem('loggedInUser');
+    return storedLoggedInUser || '';
+  };
 
-    setTodos(JSON.parse(storedTodos) || {});
-    setCompletedTodos(JSON.parse(storedCompletedTodos) || {});
-
-    const storedUser = localStorage.getItem('loggedInUser');
-    if (storedUser) {
-      setLoggedInUser(JSON.parse(storedUser));
+  const { data: todos } = useQuery('todos', fetchTodos);
+  const { data: completedTodos } = useQuery('completedTodos', fetchCompletedTodos);
+  const { data: loggedInUser } = useQuery('loggedInUser', fetchLoggedInUser);
+  
+  const addTodoMutation = useMutation(
+    async (newTodo) => {
+      const updatedTodos = {
+        ...todos,
+        [newTodo.id]: newTodo,
+      };
+      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      return updatedTodos;
+    },
+    {
+      onSuccess: (data) => {
+        queryClient.setQueryData('todos', data);
+      },
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
-    localStorage.setItem('completedTodos', JSON.stringify(completedTodos));
-  }, [todos, completedTodos]);
+  );
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
-  };
-
-  const handleAddTodo = () => {
-    if (inputValue.trim() !== '') {
-      if (editIndex !== null) {
-        const todoId = Object.keys(todos)[editIndex];
-        const updatedTodos = { ...todos };
-        updatedTodos[todoId] = {
-          text: inputValue,
-          createdBy: loggedInUser,
-        };
-        setTodos(updatedTodos);
-        setEditIndex(null);
-      } else {
-        const userId = loggedInUser.id;
-        const todoId = `${userId}_${generateUniqueId()}`;
-        const updatedTodos = {
-          ...todos,
-          [todoId]: {
-            text: inputValue,
-            createdBy: loggedInUser,
-          },
-        };
-        setTodos(updatedTodos);
-      }
-      setInputValue('');
-    }
-  };
-
-  const handleEditTodo = (index) => {
-    setInputValue(todos[index].text);
-    setEditIndex(index);
-  };
-
-  const handleDeleteTodo = (index) => {
-    const updatedTodos = { ...todos };
-    delete updatedTodos[index];
-    setTodos(updatedTodos);
-    removeCompleted(index);
-  };
-
-  const handleToggleTodo = (index) => {
-    const updatedCompletedTodos = { ...completedTodos };
-    if (completedTodos[index]) {
-      delete updatedCompletedTodos[index];
-    } else {
-      updatedCompletedTodos[index] = true;
-    }
-    setCompletedTodos(updatedCompletedTodos);
-  };
-
-  const removeCompleted = (index) => {
-    const updatedCompletedTodos = { ...completedTodos };
-    delete updatedCompletedTodos[index];
-    setCompletedTodos(updatedCompletedTodos);
-  };
-
-  const isTodoCompleted = (index) => {
-    return completedTodos[index];
   };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
-  const filteredTodos = Object.entries(todos).filter(([todoId, todo]) => {
-    const { createdBy } = todo;
-    if (activeTab === 'all') {
-      return createdBy === loggedInUser;
-    } else if (activeTab === 'active') {
-      return createdBy === loggedInUser && !completedTodos[todoId];
-    } else if (activeTab === 'completed') {
-      return createdBy === loggedInUser && completedTodos[todoId];
+  const handleAddTodo = async () => {
+    if (inputValue.trim() !== '') {
+      const newTodo = {
+        id: generateUniqueId(),
+        text: inputValue,
+        completed: false,
+        createdBy: loggedInUser,
+      };
+      await addTodoMutation.mutateAsync(newTodo);
+      setInputValue('');
     }
-    return false;
-  });
+  };
+
+  const handleEditTodo = (todoId) => {
+    const editedTodo = todos[todoId];
+
+    if (editedTodo) {
+      setInputValue(editedTodo.text);
+      setEditIndex(todoId);
+    }
+  };
+
+  const handleDeleteTodo = async (todoId) => {
+    const updatedTodos = { ...todos };
+    delete updatedTodos[todoId];
+    localStorage.setItem('todos', JSON.stringify(updatedTodos));
+    queryClient.setQueryData('todos', updatedTodos);
+  };
+
+  const handleToggleTodo = async (todoId) => {
+    const updatedTodos = { ...todos };
+    const todo = updatedTodos[todoId];
+
+    if (todo) {
+      const updatedTodo = {
+        ...todo,
+        completed: !todo.completed,
+      };
+
+      updatedTodos[todoId] = updatedTodo;
+      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      queryClient.setQueryData('todos', updatedTodos);
+    }
+  };
+
+  const generateUniqueId = () => {
+    return Math.random().toString(36).substr(2, 9);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('loggedInUser');
     navigate('/');
   };
 
-  const generateUniqueId = () => {
-    return Math.random().toString(36).substr(2, 9);
-  };
+  const filteredTodos = todos ? Object.entries(todos).filter(([todoId, todo]) => {
+    const { createdBy } = todo;
+    if (activeTab === 'all') {
+      return true;
+    } else if (activeTab === 'active') {
+      return createdBy && !completedTodos[todoId];
+    } else if (activeTab === 'completed') {
+      return createdBy && completedTodos[todoId];
+    }
+    return false;
+  }) : [];
 
   return (
     <div className="container mt-5 shadow-lg p-4 rounded">
@@ -156,8 +159,7 @@ const NewTodoList = () => {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${activeTab === 'completed' ? 'active' : ''
-              }`}
+            className={`nav-link ${activeTab === 'completed' ? 'active' : ''}`}
             onClick={() => handleTabChange('completed')}
           >
             Completed
@@ -166,12 +168,12 @@ const NewTodoList = () => {
       </ul>
       <ul className="list-group mt-3">
         {filteredTodos.map(([todoId, todo]) => {
-          const { text, createdBy } = todo;
+          const { text, createdBy, completed } = todo;
 
           return (
             <li
               key={todoId}
-              className={`list-group-item d-flex justify-content-between align-items-center ${isTodoCompleted(todoId) ? 'list-group-item-success' : ''
+              className={`list-group-item d-flex justify-content-between align-items-center ${completed ? 'list-group-item-success' : ''
                 }`}
             >
               <label className="form-check-label" htmlFor={`checkbox-${todoId}`}>
@@ -179,7 +181,7 @@ const NewTodoList = () => {
                   type="checkbox"
                   className="form-check-input"
                   id={`checkbox-${todoId}`}
-                  checked={isTodoCompleted(todoId)}
+                  checked={completed}
                   onChange={() => handleToggleTodo(todoId)}
                 />
                 <span className="ms-2">{text}</span>
