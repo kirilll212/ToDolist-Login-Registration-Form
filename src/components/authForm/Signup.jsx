@@ -4,6 +4,7 @@ import { SHA256 } from 'crypto-js';
 import { validateName, validateEmail, validatePassword, validateConfirmPassword } from './Validation/config';
 import { FormInput } from './inputs/formControl';
 import { useFormHandlers } from './formHandlers/formHandlers';
+import './formStyle.css';
 
 function Signup() {
   const {
@@ -94,10 +95,10 @@ function Signup() {
   
   
   return (
-    <div className="signup template d-flex justify-content-center align-items-center vh-100 bg-info">
-      <div className="form_container p-5 rounded bg-white">
+    <div className="login-container template d-flex justify-content-center align-items-center vh-100 ">
+      <div className="login-card form_container p-5 rounded bg-white">
         <form onSubmit={handleFormSubmit}>
-          <h3 className="text-center">Sign Up</h3>
+          <h3 className="text-center text-uppercase">Sign Up</h3>
             <FormInput
                 input="text"
                 onChange={handleNameChange}
