@@ -85,19 +85,30 @@ const NewTodoList = () => {
 
   const handleToggleTodo = async (todoId) => {
     const updatedTodos = { ...todos };
+    const updatedCompletedTodos = { ...completedTodos };
     const todo = updatedTodos[todoId];
-
+  
     if (todo) {
       const updatedTodo = {
         ...todo,
         completed: !todo.completed,
       };
-
+  
       updatedTodos[todoId] = updatedTodo;
+  
+      if (updatedTodo.completed) {
+        updatedCompletedTodos[todoId] = true;
+      } else {
+        delete updatedCompletedTodos[todoId];
+      }
+  
       localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      localStorage.setItem('completedTodos', JSON.stringify(updatedCompletedTodos));
+  
       queryClient.setQueryData('todos', updatedTodos);
+      queryClient.setQueryData('completedTodos', updatedCompletedTodos);
     }
-  };
+  };  
 
   const generateUniqueId = () => {
     return Math.random().toString(36).substr(2, 9);
