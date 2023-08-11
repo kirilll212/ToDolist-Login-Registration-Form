@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import './style.css';
 
 const NewTodoList = () => {
@@ -15,12 +15,12 @@ const NewTodoList = () => {
     const storedTodos = localStorage.getItem('todos');
     return JSON.parse(storedTodos) || {};
   };
-  
+
   const fetchCompletedTodos = async () => {
     const storedCompletedTodos = localStorage.getItem('completedTodos');
     return JSON.parse(storedCompletedTodos) || {};
   };
-  
+
   const fetchLoggedInUser = async () => {
     const storedLoggedInUser = localStorage.getItem('loggedInUser');
     return storedLoggedInUser || '';
@@ -29,22 +29,6 @@ const NewTodoList = () => {
   const { data: todos } = useQuery('todos', fetchTodos);
   const { data: completedTodos } = useQuery('completedTodos', fetchCompletedTodos);
   const { data: loggedInUser } = useQuery('loggedInUser', fetchLoggedInUser);
-  
-  const addTodoMutation = useMutation(
-    async (newTodo) => {
-      const updatedTodos = {
-        ...todos,
-        [newTodo.id]: newTodo,
-      };
-      localStorage.setItem('todos', JSON.stringify(updatedTodos));
-      return updatedTodos;
-    },
-    {
-      onSuccess: (data) => {
-        queryClient.setQueryData('todos', data);
-      },
-    }
-  );
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -56,14 +40,82 @@ const NewTodoList = () => {
 
   const handleAddTodo = async () => {
     if (inputValue.trim() !== '') {
-      const newTodo = {
-        id: generateUniqueId(),
-        text: inputValue,
-        completed: false,
-        createdBy: loggedInUser,
-      };
-      await addTodoMutation.mutateAsync(newTodo);
-      setInputValue('');
+      if (editIndex !== null) {
+        const editedTodoId = Object.keys(todos)[editIndex];
+        const editedTodo = todos[editedTodoId];
+
+        if (editedTodo) {
+          const updatedTodo = {
+            ...editedTodo,
+            text: inputValue,
+          };
+
+          const updatedTodos = {
+            ...todos,
+            [editedTodoId]: updatedTodo,
+          };
+
+          queryClient.setQueryData('todos', updatedTodos);
+
+          setInputValue('');
+          setEditIndex(null);
+
+          localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        }
+      } else {
+        const newTodoId = generateUniqueId();
+
+        const newTodo = {
+          id: Math.floor(Math.random()),
+          text: inputValue,
+          completed: false,
+          createdBy: loggedInUser,
+          userId: 1,
+        };
+
+        const updatedTodos = {
+          ...todos,
+          [newTodoId]: newTodo,
+        };
+
+        queryClient.setQueryData('todos', updatedTodos);
+
+        setInputValue('');
+
+        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+
+        try {
+          const response = await fetch('https://dummyjson.com/todos/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTodo),
+          });
+
+          if (!response.ok) {
+            const errorResponse = await response.json();
+            console.error('Error adding todo:', errorResponse);
+            throw new Error('Error adding todo');
+          }
+
+          const data = await response.json();
+          const updatedTodo = {
+            id: data.id,
+            text: data.todo,
+            completed: data.completed,
+            createdBy: loggedInUser,
+          };
+
+          const updatedTodosAfterServer = {
+            ...updatedTodos,
+            [updatedTodo.id]: updatedTodo,
+          };
+
+          queryClient.setQueryData('todos', updatedTodosAfterServer);
+          localStorage.setItem('todos', JSON.stringify(updatedTodosAfterServer));
+        } catch (error) {
+          console.error('Error adding todo:', error);
+        }
+      }
     }
   };
 
@@ -87,28 +139,43 @@ const NewTodoList = () => {
     const updatedTodos = { ...todos };
     const updatedCompletedTodos = { ...completedTodos };
     const todo = updatedTodos[todoId];
-  
+
     if (todo) {
       const updatedTodo = {
         ...todo,
         completed: !todo.completed,
       };
-  
+
       updatedTodos[todoId] = updatedTodo;
-  
+
       if (updatedTodo.completed) {
         updatedCompletedTodos[todoId] = true;
       } else {
         delete updatedCompletedTodos[todoId];
       }
-  
+
       localStorage.setItem('todos', JSON.stringify(updatedTodos));
       localStorage.setItem('completedTodos', JSON.stringify(updatedCompletedTodos));
-  
+
       queryClient.setQueryData('todos', updatedTodos);
       queryClient.setQueryData('completedTodos', updatedCompletedTodos);
+
+      fetch(`https://dummyjson.com/todos/${todoId}`, {
+        method: 'PUT', /* or PATCH */
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          completed: updatedTodo.completed,
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Todo updated:', data);
+        })
+        .catch(error => {
+          console.error('Error updating todo:', error);
+        });
     }
-  };  
+  };
 
   const generateUniqueId = () => {
     return Math.random().toString(36).substr(2, 9);
